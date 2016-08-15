@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>自动轮播封装</title>
+    <script src="build/react.js"></script>
+    <script src="build/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>
+    <style type="text/css">
+        body,div,ol,ul,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,p,form,fieldset,legend,input{ margin:0; padding:0;}
+        body{-webkit-app-region: drag}
+        button{-webkit-app-region: no-drag;}
+        ol,ul{ list-style:none;}
+        a{text-decoration: none;}
+        #lunbo{
+            /*width: 200px;
+            height:400px;*/position:relative;overflow: hidden;}
+        #list{
+            /*width:1400px;
+            height:400px;*/
+            position:absolute;z-index: 1;}
+        #list img{float: left;}
+        #buttons{height:12px;position:absolute;bottom: 20px;z-index: 2;}
+        #buttons span{cursor:pointer;width:10px;height:10px;border-radius:50%;border:1px solid #fff421;background-color: #000;margin: 0 4px;float: left;}
+        #buttons .on{background-color: #ff2806;}
+        a{position: absolute;z-index:2;
+            width:20px;height:40px;background:rgba(0,0,0,.3);line-height: 40px;font-size: 30px;cursor: pointer;display: none;}
+        #lunbo:hover a{display: block;}
+        #lunbo a:hover{background:rgba(0,0,0,.7);}
+        #prev{left:0;}
+        #next{right:0;}
+    </style>
+</head>
+<body>
+<div id="contian">
+
+</div>
+<script type="text/babel">
+
+    //图片目录
+    var Items=React.createClass({
+        render(){
+            var {item}=this.props;
+            return(
+
+                    <img src={item.src} alt={item.alt}/>
+        );
+        }
+    });
+    //快速切换图片按钮
+    var Buttons=React.createClass({
+        buttonClick(i){
+            var option=((this.props.width)*i)-this.props.left;//根据点击图片与原位置图片像素差来定位
+            this.props.turn(option);
+        },
+        render(){
+            var button=[];
+            var l=this.props.xx.length;
+            var w = this.props.width;
+
+            for(var i=1;i<l-1;i++){//设置按钮数量，并对按钮进行赋值
+                button[i]=(<span className={((this.props.width)*i)==this.props.left?"on":""} key={i} onClick={this.buttonClick.bind(this,i)}></span>)
+            }
+            return(
+                    <div id={"buttons"} style={{left:((-this.props.width)/2-(10*(l-2))),width:20*(l-2)}}>
+                        {button}
+                    </div>
+        );
+        }
+    });
+    //切换上、下一张的按钮
+    var Arrows=React.createClass({
+        hindleClick(option){
+            this.props.turn(option);
+        },
+
+        render(){
+
+            return(
+                    <div>
+                    <a href="javascript:;" id={"prev"} className="arrow" onClick={this.hindleClick.bind(this,-this.props.width)} style={{top:(this.props.height/2)-20}}>&lt;</a>
+                    <a href="javascript:;" id={"next"} className="arrow" onClick={this.hindleClick.bind(this,this.props.width)} style={{top:(this.props.height/2)-20}}>&gt;</a>
+                    </div>
+
+        );
+        }
+    });
+    var InputState = React.createClass({
+
+        getInitialState(){//初始化left值
+            return{
+                left:this.props.width,
+
+            };
+        },
+
+        //位移距离
+        turn(n){
+            var width=this.props.width
+            var count=this.props.items.length;
+            var newleft=this.state.left+n;
+            //循环判断
+            if (newleft<(count-2)*width){
+                newleft=width;
+            }
+            if (newleft>width){
+                newleft=(count-2)*width;
+            }
+            this.setState({
+                left:newleft,
+            })
+        },
+        //自动播放
+        goPlay(){
+            var that=this;
+            this.auto=setInterval(function () {that.turn(that.props.width);},this.props.autotime*1000);
+        },
+        //停止播放
+        stopPlay(){
+            this.stop=clearInterval(this.auto);
+        },
+        //载入完成自动播放
+        componentDidMount() {
+            this.goPlay();
+        },
+
+        render:function () {
+
+            var itemNodes=items.map(function (item, idx) {
+                return  <Items item={item} key={idx}/>
+            });
+            var count=items.length;
+            var width=this.props.width;
+            return (
+
+                    <div  id={"lunbo"} onMouseOver={this.stopPlay} onMouseOut={this.goPlay} style={{width:-this.props.width,height:this.props.height}} >
+            <div id={"list"} style={{left:this.state.left,width:(-this.props.width)*(count),height:this.props.height}}>
+            {itemNodes}
+            </div>
+            <div>
+            <Buttons xx={items} turn={this.turn} left={this.state.left} width={this.props.width} />
+            </div>
+            <Arrows  turn={this.turn} width={this.props.width} height={this.props.height}/>
+            </div>
+            );
+        }
+    });
+
+
+    //===============================================================================================
+
+    var items=[
+        {src:"images/5.jpg",alt:"1"},
+        {src:"images/1.jpg",alt:"1"},
+        {src:"images/2.jpg",alt:"2"},
+        {src:"images/3.jpg",alt:"3"},
+        {src:"images/4.jpg",alt:"4"},
+        {src:"images/5.jpg",alt:"5"},
+        {src:"images/1.jpg",alt:"1"},
+    ];
+
+
+    ReactDOM.render(
+    <InputState width={-420}//每张图片的宽度
+                  height={600}
+                  items={items}//图片数组对象
+                  autotime={3}//自动切换图片时间
+                          />,
+            document.getElementById('contian')
+    );
+
+
+
+</script>
+
+</body>
+</html>
